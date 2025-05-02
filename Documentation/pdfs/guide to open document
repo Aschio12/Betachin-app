@@ -1,0 +1,14 @@
+## Viewing the PDF Documentation
+
+**Note to users**: GitHub may show "Unable to render code block" when trying to view the PDF directly. To properly view the documentation:
+
+1. Click on the file "mobile app documentation final2.pdf"
+2. Look for the download button (down arrow icon) in the top right corner
+3. Download the file to your local device
+4. Open the downloaded file with any PDF reader
+
+If you don't see a download button, you can also:
+- Click the "Raw" button, then save the file from your browser
+- Or add "?raw=true" to the end of the URL to force download
+
+For any issues accessing the documentation, please contact the repository owner.
