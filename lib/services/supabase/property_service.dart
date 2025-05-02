@@ -3,7 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/property_model.dart';
+import '../../models/property_model.dart';
+import 'storage_service.dart';
 
 // Proper conditional imports
 import 'dart:io' show File;
@@ -11,25 +12,12 @@ import 'dart:io' show File;
 import 'package:universal_html/html.dart' as html
     if (dart.library.io) 'no_web.dart';
 
-class SupabaseService {
+class PropertyService {
   final SupabaseClient supabase;
-  final _logger = Logger('SupabaseService');
+  final StorageService storageService;
+  final _logger = Logger('PropertyService');
 
-  SupabaseService({required this.supabase});
-
-  // Refresh the authentication session to ensure the token is valid
-  Future<void> refreshSession() async {
-    try {
-      if (supabase.auth.currentSession != null) {
-        await supabase.auth.refreshSession();
-        _logger.info('Session refreshed successfully');
-      } else {
-        _logger.info('No session to refresh');
-      }
-    } catch (e) {
-      _logger.severe('Error refreshing session: $e');
-    }
-  }
+  PropertyService({required this.supabase, required this.storageService});
 
   Future<List<PropertyModel>> getProperties({
     bool rentOnly = false,
@@ -160,7 +148,6 @@ class SupabaseService {
         }
       }
 
-
       // If no primary image was marked, use the first one
       if (primaryImageUrl == null && imageUrls.isNotEmpty) {
         primaryImageUrl = imageUrls[0];
@@ -178,8 +165,7 @@ class SupabaseService {
     }
   }
 
-
-  //Get users properties - updated to ensure active status is correctly retrieved
+  // Get users properties
   Future<List<PropertyModel>> getUserProperties() async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) {
@@ -187,7 +173,10 @@ class SupabaseService {
     }
 
     try {
-      await refreshSession(); // Ensure token is valid
+      // Ensure token is valid
+      if (supabase.auth.currentSession != null) {
+        await supabase.auth.refreshSession();
+      }
 
       var query = supabase.from('properties').select('''
         *,
@@ -242,7 +231,6 @@ class SupabaseService {
         }
       }
 
-
       // Convert to PropertyModel objects
       List<PropertyModel> properties = [];
       for (var propertyId in propertyMap.keys) {
@@ -270,104 +258,7 @@ class SupabaseService {
     }
   }
 
-
-  // Get favorite properties
-  Future<List<PropertyModel>> getFavoriteProperties() async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    try {
-      // Get favorite IDs first
-      final favoriteIds = await getUserFavorites();
-
-      // If no favorites, return empty list early
-      if (favoriteIds.isEmpty) {
-        return [];
-      }
-
-      // Get all properties that match the favorite IDs
-      var query = supabase.from('properties').select('''
-        *,
-        property_images(image_url, is_primary)
-      ''').inFilter('id', favoriteIds);
-
-      final response = await query;
-      final List<dynamic> data = response;
-
-      // Process the data
-      Map<int, Map<String, dynamic>> propertyMap = {};
-      Map<int, List<Map<String, dynamic>>> propertyImages = {};
-
-      for (var item in data) {
-        final propertyId = item['id'] as int;
-
-        // If we haven't seen this property before, create the base property data
-        if (!propertyMap.containsKey(propertyId)) {
-          propertyMap[propertyId] = {
-            'id': propertyId,
-            'user_id': item['user_id'],
-            'property_name': item['property_name'],
-            'address': item['address'],
-            'floor': item['floor'],
-            'city': item['city'],
-            'bath_rooms': item['bath_rooms'],
-            'bed_rooms': item['bed_rooms'],
-            'square_feet': item['square_feet'],
-            'price': item['price'],
-            'description': item['description'],
-            'type': item['type'],
-            'listing_type': item['listing_type'],
-            'rating': item['rating'] ?? 0.0,
-            'created_at': item['created_at'],
-            'is_active': item['is_active'] ?? true,
-          };
-          propertyImages[propertyId] = [];
-        }
-
-        // Process property images
-        if (item['property_images'] != null) {
-          final images = item['property_images'] as List;
-          for (var image in images) {
-            if (image != null && image['image_url'] != null) {
-              propertyImages[propertyId]!.add({
-                'image_url': image['image_url'],
-                'is_primary': image['is_primary'] ?? false,
-              });
-            }
-          }
-        }
-      }
-
-
-      // Convert to PropertyModel objects
-      List<PropertyModel> properties = [];
-      for (var propertyId in propertyMap.keys) {
-        final Map<String, dynamic> property = propertyMap[propertyId]!;
-        final imageData = propertyImages[propertyId] ?? [];
-        property['image_urls'] =
-            imageData.map((img) => img['image_url'] as String).toList();
-        property['primary_image_url'] = imageData.firstWhere(
-          (img) => img['is_primary'] == true,
-          orElse: () =>
-              imageData.isNotEmpty ? imageData[0] : {'image_url': null},
-        )['image_url'];
-
-        properties.add(PropertyModel.fromJson(property));
-      }
-
-      return properties;
-    } catch (e) {
-      _logger.severe('Error fetching favorite properties: $e');
-      rethrow;
-    }
-  }
-
-
-
-  // Add property 
-  // Add a property - updated with session refresh and detailed logging
+  // Add property
   Future<PropertyModel> addProperty({
     required String propertyName,
     required String address,
@@ -393,7 +284,11 @@ class SupabaseService {
           'Authentication state: ${supabase.auth.currentSession != null ? "Authenticated" : "Not Authenticated"}');
       _logger.info(
           'Current session token: ${supabase.auth.currentSession?.accessToken.substring(0, 10)}...');
-      await refreshSession(); // Ensure token is valid before upload
+      
+      // Ensure token is valid before upload
+      if (supabase.auth.currentSession != null) {
+        await supabase.auth.refreshSession();
+      }
 
       // 1. Insert property data
       final propertyResponse = await supabase
@@ -430,34 +325,10 @@ class SupabaseService {
         _logger.info('Uploading image $i to path: $filePath');
         if (kIsWeb) {
           // Handle web file upload
-          final file = images[i] as html.File;
-          final bytes = await _readWebFileAsBytes(file);
-          _logger.info(
-              'Web upload: bucket=images, path=$filePath, contentType=${file.type}');
-
-          await supabase.storage.from('images').uploadBinary(
-                filePath,
-                bytes,
-                fileOptions: FileOptions(contentType: file.type),
-              );
-
-          imageUrl = supabase.storage.from('images').getPublicUrl(filePath);
-          _logger.info('Web image URL: $imageUrl');
+          imageUrl = await storageService.uploadWebFile(images[i], filePath);
         } else {
           // Handle native file upload
-          final file = images[i] as File;
-          final fileExt = file.path.split('.').last;
-          final filePathWithExt = '$filePath.$fileExt';
-          _logger.info('Mobile upload: bucket=images, path=$filePathWithExt');
-
-          await supabase.storage.from('images').upload(
-                filePathWithExt,
-                file,
-              );
-
-          imageUrl =
-              supabase.storage.from('images').getPublicUrl(filePathWithExt);
-          _logger.info('Mobile image URL: $imageUrl');
+          imageUrl = await storageService.uploadFile(images[i], filePath);
         }
 
         imageUrls.add(imageUrl);
@@ -498,21 +369,7 @@ class SupabaseService {
     }
   }
 
-  // Helper method to read web file as bytes
-  Future<Uint8List> _readWebFileAsBytes(html.File file) {
-    final completer = Completer<Uint8List>();
-    final reader = html.FileReader();
-
-    reader.onLoadEnd.listen((event) {
-      final result = reader.result as Uint8List;
-      completer.complete(result);
-    });
-
-    reader.readAsArrayBuffer(file);
-    return completer.future;
-  }
-
-  // Updated update property method - fixed 'referrals' typo
+  // Update property method
   Future<void> updateProperty({
     required int propertyId,
     required String propertyName,
@@ -540,7 +397,11 @@ class SupabaseService {
           'Authentication state: ${supabase.auth.currentSession != null ? "Authenticated" : "Not Authenticated"}');
       _logger.info(
           'Current session token: ${supabase.auth.currentSession?.accessToken.substring(0, 10)}...');
-      await refreshSession(); // Ensure token is valid before upload
+      
+      // Ensure token is valid before upload
+      if (supabase.auth.currentSession != null) {
+        await supabase.auth.refreshSession();
+      }
 
       // Verify ownership
       await supabase
@@ -589,34 +450,10 @@ class SupabaseService {
           _logger.info('Uploading new image $i to path: $filePath');
           if (kIsWeb) {
             // Handle web file upload
-            final file = newImages[i] as html.File;
-            final bytes = await _readWebFileAsBytes(file);
-            _logger.info(
-                'Web upload: bucket=images, path=$filePath, contentType=${file.type}');
-
-            await supabase.storage.from('images').uploadBinary(
-                  filePath,
-                  bytes,
-                  fileOptions: FileOptions(contentType: file.type),
-                );
-
-            imageUrl = supabase.storage.from('images').getPublicUrl(filePath);
-            _logger.info('Web image URL: $imageUrl');
+            imageUrl = await storageService.uploadWebFile(newImages[i], filePath);
           } else {
             // Handle native file upload
-            final file = newImages[i] as File;
-            final fileExt = file.path.split('.').last;
-            final filePathWithExt = '$filePath.$fileExt';
-            _logger.info('Mobile upload: bucket=images, path=$filePathWithExt');
-
-            await supabase.storage.from('images').upload(
-                  filePathWithExt,
-                  file,
-                );
-
-            imageUrl =
-                supabase.storage.from('images').getPublicUrl(filePathWithExt);
-            _logger.info('Mobile image URL: $imageUrl');
+            imageUrl = await storageService.uploadFile(newImages[i], filePath);
           }
 
           _logger
@@ -655,8 +492,7 @@ class SupabaseService {
     }
   }
 
-  // Toggle property listing status - updated with session refresh
-  // Ensure this method in SupabaseService works correctly
+  // Toggle property listing status
   Future<void> togglePropertyListing(int propertyId, bool isActive) async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) {
@@ -664,7 +500,10 @@ class SupabaseService {
     }
 
     try {
-      await refreshSession(); // Ensure the token is valid
+      // Ensure the token is valid
+      if (supabase.auth.currentSession != null) {
+        await supabase.auth.refreshSession();
+      }
 
       // Verify ownership first to prevent unauthorized changes
       await supabase
@@ -696,7 +535,10 @@ class SupabaseService {
           'Authentication state: ${supabase.auth.currentSession != null ? "Authenticated" : "Not Authenticated"}');
       _logger.info(
           'Current session token: ${supabase.auth.currentSession?.accessToken.substring(0, 10)}...');
-      await refreshSession();
+      
+      if (supabase.auth.currentSession != null) {
+        await supabase.auth.refreshSession();
+      }
 
       // 1. Verify ownership
       await supabase
@@ -746,106 +588,6 @@ class SupabaseService {
     } catch (e) {
       _logger.severe('Error deleting property: $e');
       throw Exception('Property not found or you don\'t have permission: $e');
-    }
-  }
-
-  // Toggle favorite - used in HomePage
-  Future<void> toggleFavorite(int propertyId) async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    try {
-      // Check if already favorited
-      final existingFav = await supabase
-          .from('favorites')
-          .select()
-          .eq('property_id', propertyId)
-          .eq('user_id', userId);
-
-      if ((existingFav as List).isEmpty) {
-        // Add to favorites
-        await supabase.from('favorites').insert({
-          'property_id': propertyId,
-          'user_id': userId,
-        });
-      } else {
-        // Remove from favorites
-        await supabase
-            .from('favorites')
-            .delete()
-            .eq('property_id', propertyId)
-            .eq('user_id', userId);
-      }
-    } catch (e) {
-      _logger.severe('Error toggling favorite: $e');
-      rethrow;
-    }
-  }
-
-  // Get user favorites - used in HomePage
-  Future<List<int>> getUserFavorites() async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    try {
-      final response = await supabase
-          .from('favorites')
-          .select('property_id')
-          .eq('user_id', userId);
-
-      final List<dynamic> data = response;
-      return data.map<int>((item) => item['property_id'] as int).toList();
-    } catch (e) {
-      _logger.severe('Error getting user favorites: $e');
-      rethrow;
-    }
-  }
-
-  // Get user profile details
-  Future<Map<String, dynamic>> getUserProfile() async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    try {
-      final response =
-          await supabase.from('profiles').select().eq('id', userId).single();
-
-      return response;
-    } catch (e) {
-      _logger.severe('Error getting user profile: $e');
-      rethrow;
-    }
-  }
-
-  // Update user profile
-  Future<void> updateUserProfile({
-    required String fullName,
-    String? avatarUrl,
-    String? phone,
-    String? address,
-  }) async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) {
-      throw Exception('User not authenticated');
-    }
-
-    try {
-      await supabase.from('profiles').update({
-        'full_name': fullName,
-        'avatar_url': avatarUrl,
-        'phone': phone,
-        'address': address,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', userId);
-    } catch (e) {
-      _logger.severe('Error updating user profile: $e');
-      rethrow;
     }
   }
 }
