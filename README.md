@@ -28,11 +28,11 @@
 
 | Home / Landing Page | Profile Page |
 |---------------------|--------------|
-| <img src="images/home_page.jpg" alt="Home Page" width="300"/> | <img src="images/profile_page.jpg" alt="Profile Page" width="300"/> |
+| <img src="https://github.com/Aschio12/Betachin-app/blob/master/home_page.jpg" alt="Home Page" width="300"/> | <img src="https://github.com/Aschio12/Betachin-app/blob/master/profile_page.jpg" alt="Profile Page" width="300"/> |
 
 | Add Property Page | Property Detail Page |
 |------------------|----------------------|
-| <img src="images/add_property.jpg" alt="Add Property Page" width="300"/> | <img src="images/property_detail.jpg" alt="Property Detail Page" width="300"/> |
+| <img src="https://github.com/Aschio12/Betachin-app/blob/master/add_property.jpg" alt="Add Property Page" width="300"/> | <img src="https://github.com/Aschio12/Betachin-app/blob/master/property_detail.jpg" alt="Property Detail Page" width="300"/> |
 
 > 📷 Replace `images/...` with actual paths to your screenshots or hosted image URLs for a live preview.
 
