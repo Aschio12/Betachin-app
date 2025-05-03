@@ -28,11 +28,11 @@
 
 | Home / Landing Page | Profile Page |
 |---------------------|--------------|
-| <img src="images/home_page.png" alt="Home Page" width="300"/> | <img src="images/profile_page.png" alt="Profile Page" width="300"/> |
+| <img src="images/home_page.jpg" alt="Home Page" width="300"/> | <img src="images/profile_page.jpg" alt="Profile Page" width="300"/> |
 
 | Add Property Page | Property Detail Page |
 |------------------|----------------------|
-| <img src="images/add_property.png" alt="Add Property Page" width="300"/> | <img src="images/property_detail.png" alt="Property Detail Page" width="300"/> |
+| <img src="images/add_property.jpg" alt="Add Property Page" width="300"/> | <img src="images/property_detail.jpg" alt="Property Detail Page" width="300"/> |
 
 > 📷 Replace `images/...` with actual paths to your screenshots or hosted image URLs for a live preview.
 
