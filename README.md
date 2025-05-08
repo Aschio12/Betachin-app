@@ -5,57 +5,64 @@
   A mobile app that connects renters, buyers, and house owners — with no middlemen.
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/status-in%20development-blue" alt="Project Status" />
+  <img src="https://img.shields.io/github/issues/Aschio12/betachn" alt="GitHub Issues" />
+  <img src="https://img.shields.io/github/stars/Aschio12/betachn" alt="GitHub Stars" />
+</p>
+
 ---
 
-## ✨ Key Features
+## ✨ Features
 
-- 🔍 **Smart Property Search**  
-  Filter listings by location, price, type, and availability to find your perfect match.
+- 🔍 **Smart Property Search** – Filter listings by location, price, type, and availability to find your perfect match.  
+- 🏠 **Easy Property Listing** – Add property details with images, pricing, and key information in just a few steps.  
+- 🗺️ **Interactive Map View** – Explore listings visually with integrated map-based navigation.  
+- 💬 **In-App Chat** – Communicate instantly with property owners or prospective tenants.  
+- 🔔 **Real-Time Notifications** – Stay updated with instant alerts for messages and activity.  
+- ❤️ **Favorites** – Bookmark and revisit properties you're interested in.  
 
-- 🏠 **Easy Property Listing**  
-  Add property details with images, pricing, and key information in just a few steps.
+---
 
-- 🗺️ **Interactive Map View**  
-  Explore listings visually with integrated map-based navigation.
+## 🖼️ Screenshots
 
-- 💬 **In-App Chat**  
-  Communicate instantly with property owners or prospective tenants.
+| Home / Landing Page | Profile Page |
+|---------------------|--------------|
+| <img src="https://github.com/Aschio12/Betachin-app/blob/master/home_page.jpg" alt="Home Page" width="300"/> | <img src="https://github.com/Aschio12/Betachin-app/blob/master/profile_page.jpg" alt="Profile Page" width="300"/> |
 
-- 🔔 **Real-Time Notifications**  
-  Stay updated with instant alerts for messages and activity.
+| Add Property Page | Property Detail Page |
+|------------------|----------------------|
+| <img src="https://github.com/Aschio12/Betachin-app/blob/master/add_property.jpg" alt="Add Property Page" width="300"/> | <img src="https://github.com/Aschio12/Betachin-app/blob/master/property_detail.jpg" alt="Property Detail Page" width="300"/> |
 
-- ❤️ **Favorites**  
-  Bookmark and revisit properties you're interested in.
+> 📷 Replace `images/...` with actual paths to your screenshots or hosted image URLs for a live preview.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer        | Technology          |
-|--------------|---------------------|
-| **Frontend** | Flutter             |
-| **Backend**  | Supabase            |
-| **Database** | PostgreSQL (via Supabase) |
-| **Auth**     | Supabase Auth       |
-
----
-
-## 📸 Screenshots *(Coming Soon)*
-
-> Showcase real app screenshots or demos here to make it visually appealing.
+| Layer        | Technology               |
+|--------------|--------------------------|
+| **Frontend** | Flutter                  |
+| **Backend**  | Supabase                 |
+| **Database** | PostgreSQL (via Supabase)|
+| **Auth**     | Supabase Auth            |
 
 ---
 
 ## 🚧 Project Status
 
-🟢 **In Development**  
-We're actively building and improving Betachn. Stay tuned for updates and releases!
+**🟢 In Development**  
+We're actively building and improving **Betachn**. Stay tuned for updates, new features, and stable releases!
 
 ---
 
 ## 🤝 Contributing
 
 Contributions, issues, and suggestions are welcome!  
-Feel free to [open an issue](https://github.com/Aschio12/betachn/issues) or submit a pull request.
+Feel free to [open an issue](https://github.com/Aschio12/betachn/issues) or submit a pull request.  
 
 ---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
