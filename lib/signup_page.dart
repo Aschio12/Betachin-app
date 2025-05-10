@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'utils/logger.dart';
 import 'login_page.dart';
+// Import your HomePage with correct path - adjust this based on your project structure
+import 'screens/home_page.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -45,25 +47,28 @@ class SignupPageState extends State<SignupPage> {
 
     try {
       final supabase = Supabase.instance.client;
-      await supabase.auth.signUp(
+      // Sign up the user
+      final AuthResponse response = await supabase.auth.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Registration successful! Please check your email to verify your account.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Navigate to login page
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-          (route) => false, // This clears the navigation stack
-        );
+      // Auto-sign in the user
+      if (response.user != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Navigate directly to home page
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+            (route) => false, // This clears the navigation stack
+          );
+        }
       }
     } catch (e) {
       logger.e('Signup error: $e');

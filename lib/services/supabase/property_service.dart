@@ -1,16 +1,15 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:logging/logging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/property_model.dart';
 import 'storage_service.dart';
 
-// Proper conditional imports
-import 'dart:io' show File;
-// Import only what we need from dart:html when on web
-import 'package:universal_html/html.dart' as html
-    if (dart.library.io) 'no_web.dart';
+// For web and non-web platform compatibility
+// We're conditionally importing these based on platform
+// but still need type information for method signatures
+import 'dart:io' if (dart.library.html) 'dart:io' as io show File;
+import 'package:universal_html/html.dart' as html;
 
 class PropertyService {
   final SupabaseClient supabase;
@@ -271,7 +270,8 @@ class PropertyService {
     required String description,
     required String type,
     required String listingType,
-    required List<dynamic> images, // List<File> or List<html.File>
+    required List<dynamic>
+        images, // List<File> or List<html.File> based on platform
   }) async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) {
@@ -284,7 +284,7 @@ class PropertyService {
           'Authentication state: ${supabase.auth.currentSession != null ? "Authenticated" : "Not Authenticated"}');
       _logger.info(
           'Current session token: ${supabase.auth.currentSession?.accessToken.substring(0, 10)}...');
-      
+
       // Ensure token is valid before upload
       if (supabase.auth.currentSession != null) {
         await supabase.auth.refreshSession();
@@ -383,7 +383,7 @@ class PropertyService {
     required String description,
     required String type,
     required String listingType,
-    List<dynamic>? newImages,
+    List<dynamic>? newImages, // List<File> or List<html.File> based on platform
     List<String>? imagesToDelete,
   }) async {
     final userId = supabase.auth.currentUser?.id;
@@ -397,7 +397,7 @@ class PropertyService {
           'Authentication state: ${supabase.auth.currentSession != null ? "Authenticated" : "Not Authenticated"}');
       _logger.info(
           'Current session token: ${supabase.auth.currentSession?.accessToken.substring(0, 10)}...');
-      
+
       // Ensure token is valid before upload
       if (supabase.auth.currentSession != null) {
         await supabase.auth.refreshSession();
@@ -450,7 +450,8 @@ class PropertyService {
           _logger.info('Uploading new image $i to path: $filePath');
           if (kIsWeb) {
             // Handle web file upload
-            imageUrl = await storageService.uploadWebFile(newImages[i], filePath);
+            imageUrl =
+                await storageService.uploadWebFile(newImages[i], filePath);
           } else {
             // Handle native file upload
             imageUrl = await storageService.uploadFile(newImages[i], filePath);
@@ -535,7 +536,7 @@ class PropertyService {
           'Authentication state: ${supabase.auth.currentSession != null ? "Authenticated" : "Not Authenticated"}');
       _logger.info(
           'Current session token: ${supabase.auth.currentSession?.accessToken.substring(0, 10)}...');
-      
+
       if (supabase.auth.currentSession != null) {
         await supabase.auth.refreshSession();
       }

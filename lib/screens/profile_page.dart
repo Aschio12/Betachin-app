@@ -21,46 +21,32 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _phone;
   String? _address;
   bool _isLoading = true;
-  bool _isMounted = false;
 
   @override
   void initState() {
     super.initState();
-    _isMounted = true;
     // Load user profile data on widget initialization
     _loadUserProfile();
   }
 
-  @override
-  void dispose() {
-    _isMounted = false;
-    super.dispose();
-  }
-
-  // Safely update state only if widget is still mounted
-  void _safeSetState(VoidCallback fn) {
-    if (_isMounted) {
-      setState(fn);
-    }
-  }
-
   // Fetch user profile data from Supabase auth and profiles table
   Future<void> _loadUserProfile() async {
-    try {
-      _safeSetState(() => _isLoading = true);
+    if (!mounted) return;
 
+    setState(() => _isLoading = true);
+
+    try {
       // Get current authenticated user
       final user = _supabase.auth.currentUser;
       if (user == null) {
         // If no user is authenticated, navigate to login
-        if (_isMounted) {
-          Future.microtask(
-              () => Navigator.of(context).pushReplacementNamed('/login'));
-        }
+        if (!mounted) return;
+        Navigator.of(context).pushReplacementNamed('/login');
         return;
       }
 
-      _safeSetState(() {
+      if (!mounted) return;
+      setState(() {
         _email = user.email ?? 'No email found';
         _userId = user.id;
       });
@@ -73,8 +59,10 @@ class _ProfilePageState extends State<ProfilePage> {
             .eq('id', _userId)
             .maybeSingle(); // Use maybeSingle() instead of single()
 
+        if (!mounted) return;
+
         if (response != null) {
-          _safeSetState(() {
+          setState(() {
             _fullName = response['full_name'] ?? 'User';
             _phone = response['phone'];
             _address = response['address'];
@@ -86,22 +74,29 @@ class _ProfilePageState extends State<ProfilePage> {
       } catch (e) {
         debugPrint('Error fetching profile: ${e.toString()}');
         // Profile might not exist yet, create a default one
-        await _createDefaultProfile();
+        if (mounted) {
+          await _createDefaultProfile();
+        }
       }
     } catch (e) {
       debugPrint('Error in _loadUserProfile: ${e.toString()}');
-      if (_isMounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading profile: ${e.toString()}')),
-        );
-      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading profile: ${e.toString()}')),
+      );
     } finally {
-      _safeSetState(() => _isLoading = false);
+      // FIXED: Removed return statement from finally block
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   // Create a default profile if none exists
   Future<void> _createDefaultProfile() async {
+    if (!mounted) return;
+
     try {
       await _supabase.from('profiles').upsert({
         'id': _userId,
@@ -187,25 +182,33 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Update user password via Supabase auth
   Future<void> _updatePassword(String newPassword) async {
+    if (!mounted) return;
+
+    setState(() => _isLoading = true);
+
     try {
-      _safeSetState(() => _isLoading = true);
       await _supabase.auth.updateUser(
         UserAttributes(password: newPassword),
       );
-      if (_isMounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password updated successfully')),
-        );
-      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password updated successfully')),
+      );
     } catch (e) {
       debugPrint('Error updating password: ${e.toString()}');
-      if (_isMounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update password: ${e.toString()}')),
-        );
-      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update password: ${e.toString()}')),
+      );
     } finally {
-      _safeSetState(() => _isLoading = false);
+      // FIXED: Removed return statement from finally block
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -282,9 +285,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (result == true) {
-      try {
-        _safeSetState(() => _isLoading = true);
+      if (!mounted) return;
 
+      setState(() => _isLoading = true);
+
+      try {
         await _supabase.from('profiles').upsert({
           'id': _userId,
           'full_name': nameController.text,
@@ -293,27 +298,30 @@ class _ProfilePageState extends State<ProfilePage> {
           'updated_at': DateTime.now().toIso8601String(),
         });
 
-        _safeSetState(() {
+        if (!mounted) return;
+
+        setState(() {
           _fullName = nameController.text;
           _phone = phoneController.text;
           _address = addressController.text;
         });
 
-        if (_isMounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully')),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
       } catch (e) {
         debugPrint('Error updating profile: ${e.toString()}');
-        if (_isMounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Failed to update profile: ${e.toString()}')),
-          );
-        }
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile: ${e.toString()}')),
+        );
       } finally {
-        _safeSetState(() => _isLoading = false);
+        // FIXED: Removed return statement from finally block
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }
@@ -351,8 +359,8 @@ class _ProfilePageState extends State<ProfilePage> {
   // Build the ProfilePage UI with card-like sections
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Prevent back navigation
+    return PopScope(
+      canPop: false, // Prevent back navigation
       child: Scaffold(
         // AppBar: Topmost component displaying the page title
         appBar: AppBar(
@@ -374,7 +382,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(context).primaryColor.withAlpha(
+                            26), // Using withAlpha instead of withOpacity
                         child: Column(
                           children: [
                             const CircleAvatar(
@@ -549,7 +558,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // Handle logout with confirmation dialog and Supabase auth sign-out
-  void _handleLogout() async {
+  Future<void> _handleLogout() async {
     // Show confirmation dialog
     final bool? shouldLogout = await showDialog<bool>(
       context: context,
@@ -569,30 +578,28 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
 
-    if (shouldLogout != true) return;
+    if (shouldLogout != true || !mounted) return;
+
+    setState(() => _isLoading = true);
 
     try {
-      _safeSetState(() => _isLoading = true);
-
       // Sign out from Supabase
       await _supabase.auth.signOut();
 
       // Check if mounted before navigating
-      if (_isMounted) {
-        // Use Future.microtask to avoid "setState() called after dispose()" errors
-        Future.microtask(() {
-          // Navigate to login page
-          Navigator.of(context).pushReplacementNamed('/login');
-        });
-      }
+      if (!mounted) return;
+
+      // Navigate to login page
+      Navigator.of(context).pushReplacementNamed('/login');
     } catch (e) {
       debugPrint('Error during logout: ${e.toString()}');
-      if (_isMounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout failed: ${e.toString()}')),
-        );
-        _safeSetState(() => _isLoading = false);
-      }
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: ${e.toString()}')),
+      );
+      setState(() => _isLoading = false);
     }
   }
 }
