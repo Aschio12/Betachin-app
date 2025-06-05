@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'utils/logger.dart'; // Import logger for better error tracking
-import 'signup_page.dart'; // Make sure this import is added
+import 'utils/logger.dart';
+import 'signup_page.dart';
+import 'screens/home_page.dart'; // Make sure to import HomePage
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,16 +37,20 @@ class LoginPageState extends State<LoginPage> {
 
     try {
       final supabase = Supabase.instance.client;
-      await supabase.auth.signInWithPassword(
+      final AuthResponse response = await supabase.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+      if (mounted && response.user != null) {
+        // Navigate to home page using MaterialPageRoute (FIXED: more reliable than named routes)
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+          (route) => false, // This clears the navigation stack
+        );
       }
     } catch (e) {
-      // Log the error for easier debugging
       logger.e('Login error: $e');
 
       if (mounted) {
@@ -105,11 +110,10 @@ class LoginPageState extends State<LoginPage> {
             ),
             TextButton(
               onPressed: () {
-                // Direct navigation to signup page with MaterialPageRoute
-                Navigator.pushAndRemoveUntil(
+                // Navigate to signup page (FIXED: using pushReplacement instead of pushAndRemoveUntil)
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const SignupPage()),
-                  (route) => false, // This clears the navigation stack
                 );
               },
               child: const Text('Don\'t have an account? Sign up'),

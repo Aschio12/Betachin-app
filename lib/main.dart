@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'screens/home_page.dart';
 import 'screens/add_property.dart';
 import 'screens/property_detail.dart';
@@ -21,30 +20,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-class AuthWidgetBuilder extends StatelessWidget {
-  final Widget Function(BuildContext, AuthState) builder;
-  const AuthWidgetBuilder({super.key, required this.builder});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<AuthState>(
-      stream: Supabase.instance.client.auth.onAuthStateChange,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final state = snapshot.data;
-        if (state == null) {
-          return const LoginPage(); // Fallback if no auth state
-        }
-
-        return builder(context, state);
-      },
-    );
-  }
-}
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -57,12 +32,11 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
-      initialRoute: '/',
+      home: const AuthWrapper(), // Use AuthWrapper as home instead of routes
       routes: {
-        '/': (context) => const SignupPage(),
-        '/home': (context) => const HomePage(), // Add explicit /home route
-        '/login': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
         '/signup': (context) => const SignupPage(),
+        '/login': (context) => const LoginPage(),
         '/add_property': (context) => const AddPropertyPage(),
         '/property_detail': (context) {
           final propertyId = ModalRoute.of(context)!.settings.arguments as int;
@@ -74,16 +48,46 @@ class MyApp extends StatelessWidget {
           return EditPropertyPage(property: property);
         },
       },
-      builder: (context, child) {
-        return AuthWidgetBuilder(
-          builder: (context, state) {
-            if (state.session == null) {
-              return const LoginPage();
-            }
-            return child!;
-          },
-        );
-      },
     );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthState();
+  }
+
+  void _checkAuthState() {
+    // Listen to auth state changes
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final session = data.session;
+      if (mounted) {
+        setState(() {
+          // This will trigger a rebuild when auth state changes
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = Supabase.instance.client.auth.currentSession;
+
+    // If user is logged in, show HomePage
+    if (session != null) {
+      return const HomePage();
+    }
+
+    // If user is not logged in, show SignupPage as default
+    return const SignupPage();
   }
 }

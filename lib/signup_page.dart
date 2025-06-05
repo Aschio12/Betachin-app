@@ -53,7 +53,7 @@ class SignupPageState extends State<SignupPage> {
         password: _passwordController.text,
       );
 
-      // Auto-sign in the user
+      // Check if signup was successful
       if (response.user != null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -62,7 +62,8 @@ class SignupPageState extends State<SignupPage> {
               backgroundColor: Colors.green,
             ),
           );
-          // Navigate directly to home page
+
+          // Navigate directly to home page (FIXED: was going to LoginPage)
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const HomePage()),
@@ -139,11 +140,10 @@ class SignupPageState extends State<SignupPage> {
             ),
             TextButton(
               onPressed: () {
-                // Direct navigation to login page with MaterialPageRoute
-                Navigator.pushAndRemoveUntil(
+                // Navigate to login page
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginPage()),
-                  (route) => false, // This clears the navigation stack
                 );
               },
               child: const Text('Already have an account? Log in'),
