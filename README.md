@@ -13,13 +13,13 @@
 
 ## 👥 Contributors
 
-We are grateful to the following contributors for their efforts in building **Betachn**, ordered by their contribution ranks based on commit activity:
+We are grateful to the following contributors for their efforts in building **Betachn**
 
-1. **Aschalew Daraje** (GitHub: [Aschio12](https://github.com/Aschio12), ID: UGR/30188/15) – #1 (46 commits, 59,059 additions, 7,861 deletions)
-2. **Bemnet Mussa** (GitHub: [BemnetMussa](https://github.com/BemnetMussa), ID: UGR/30257/15) – #2 (31 commits, 24,183 additions, 21,375 deletions)
-3. **Abenezer Abebe** (GitHub: [Archon-3](https://github.com/Archon-3), ID: UGR/30068/15) – #3 (23 commits, 3,368 additions, 486 deletions)
-4. **Aman Abdela** (GitHub: [Amanbey](https://github.com/Amanbey), ID: UGR/30134/15) – #4 (20 commits, 3,236 additions, 1,592 deletions)
-5. **Etsehiwot Mengistu** (GitHub: [Etsehiwot19](https://github.com/Etsehiwot19), ID: UGR/25562/14) – #5 (4 commits, 2,687 additions, 1,174 deletions)
+1. **Aschalew Daraje** (GitHub: [Aschio12](https://github.com/Aschio12), ID: UGR/30188/15) 
+2. **Bemnet Mussa** (GitHub: [BemnetMussa](https://github.com/BemnetMussa), ID: UGR/30257/15) 
+3. **Abenezer Abebe** (GitHub: [Archon-3](https://github.com/Archon-3), ID: UGR/30068/15) 
+4. **Aman Abdela** (GitHub: [Amanbey](https://github.com/Amanbey), ID: UGR/30134/15) 
+5. **Etsehiwot Mengistu** (GitHub: [Etsehiwot19](https://github.com/Etsehiwot19), ID: UGR/25562/14) 
 
 ---
 
