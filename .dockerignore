@@ -1,0 +1,14 @@
+# Build outputs
+/build
+.dart_tool
+.pub-cache
+
+# Node artifacts
+/node_modules
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
